@@ -49,6 +49,8 @@ PHP_INI_BEGIN()
  	STD_PHP_INI_BOOLEAN("apm.mysql_enabled",       "1",               PHP_INI_PERDIR, OnUpdateBool,   enabled,             zend_apm_mysql_globals, apm_mysql_globals)
 	/* error_reporting of the driver */
 	STD_PHP_INI_ENTRY("apm.mysql_error_reporting", NULL,              PHP_INI_ALL,    OnUpdateAPMmysqlErrorReporting,   error_reporting,     zend_apm_mysql_globals, apm_mysql_globals)
+	/* toggle honoring of the silence operator, disabled by default */
+	STD_PHP_INI_ENTRY("apm.mysql_disable_silence_operator", "1",      PHP_INI_ALL,    OnUpdateBool, disable_silence_operator, zend_apm_mysql_globals, apm_mysql_globals)
 	/* mysql host */
 	STD_PHP_INI_ENTRY("apm.mysql_host",            "localhost",       PHP_INI_PERDIR, OnUpdateString, db_host,             zend_apm_mysql_globals, apm_mysql_globals)
 	/* mysql port */
@@ -78,13 +80,18 @@ MYSQL * mysql_get_instance() {
 }
 
 /* Insert an event in the backend */
-void apm_driver_mysql_insert_event(int type, char * error_filename, uint error_lineno, char * msg, char * trace, char * uri, char * host, char * ip, char * cookies, char * post_vars TSRMLS_DC)
+void apm_driver_mysql_insert_event(int type, uint silenced, char * error_filename, uint error_lineno, char * msg, char * trace, char * uri, char * host, char * ip, char * cookies, char * post_vars TSRMLS_DC)
 {
 	MYSQL_INSTANCE_INIT
 
 	char *filename_esc = NULL, *msg_esc = NULL, *trace_esc = NULL, *uri_esc = NULL, *host_esc = NULL, *cookies_esc = NULL, *post_vars_esc = NULL, *sql = NULL;
 	int filename_len = 0, msg_len = 0, trace_len = 0, uri_len = 0, host_len = 0, ip_int = 0, cookies_len = 0, post_vars_len = 0;
 	struct in_addr ip_addr;
+
+	if (silenced && APM_MY_G(disable_silence_operator) != 1)
+	{
+		return;
+	}
 
 	if (error_filename) {
 		filename_len = strlen(error_filename);

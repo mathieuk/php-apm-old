@@ -47,6 +47,7 @@ extern zend_module_entry apm_module_entry;
 
 typedef struct apm_event {
 	int type;
+	uint silenced;
 	char * error_filename;
 	uint error_lineno;
 	char * msg;
@@ -59,7 +60,7 @@ typedef struct apm_event_entry {
 } apm_event_entry;
 
 typedef struct apm_driver {
-	void (* insert_event)(int, char *, uint, char *, char *, char *, char *, char *, char *, char * TSRMLS_DC);
+	void (* insert_event)(int, uint, char *, uint, char *, char *, char *, char *, char *, char *, char * TSRMLS_DC);
 	int (* minit)(int);
 	int (* rinit)();
 	int (* mshutdown)();
@@ -151,6 +152,9 @@ ZEND_BEGIN_MODULE_GLOBALS(apm)
 	long      slow_request_duration;
 	/* Maximum recursion depth used when dumping a variable */
 	long      dump_max_depth;
+	/* Defines whether we are currently in a silenced block */
+	zend_bool currently_silenced;
+
 	apm_driver_entry *drivers;
 	apm_event_entry *events;
 	apm_event_entry **last_event;

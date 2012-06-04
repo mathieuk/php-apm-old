@@ -98,6 +98,8 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_BOOLEAN("apm.sqlite_enabled",                "1",               PHP_INI_PERDIR, OnUpdateBool,   enabled,         zend_apm_sqlite3_globals, apm_sqlite3_globals)
 	/* error_reporting of the driver */
 	STD_PHP_INI_ENTRY("apm.sqlite_error_reporting",          NULL,              PHP_INI_ALL,    OnUpdateAPMsqlite3ErrorReporting,   error_reporting, zend_apm_sqlite3_globals, apm_sqlite3_globals)
+	/* toggle honoring of the silence operator, disabled by default */
+	STD_PHP_INI_ENTRY("apm.sqlite_disable_silence_operator", "1",               PHP_INI_ALL,    OnUpdateBool, disable_silence_operator, zend_apm_sqlite3_globals, apm_sqlite3_globals)
 	/* Path to the SQLite database file */
 	STD_PHP_INI_ENTRY("apm.sqlite_max_event_insert_timeout", "100",             PHP_INI_ALL,    OnUpdateLong,   timeout,         zend_apm_sqlite3_globals, apm_sqlite3_globals)
 	/* Max timeout to wait for storing the event in the DB */
@@ -105,11 +107,16 @@ PHP_INI_BEGIN()
 PHP_INI_END()
 
 /* Insert an event in the backend */
-void apm_driver_sqlite3_insert_event(int type, char * error_filename, uint error_lineno, char * msg, char * trace, char * uri, char * host, char * ip, char * cookies, char * post_vars TSRMLS_DC)
+void apm_driver_sqlite3_insert_event(int type, uint silenced, char * error_filename, uint error_lineno, char * msg, char * trace, char * uri, char * host, char * ip, char * cookies, char * post_vars TSRMLS_DC)
 {
 	char *sql;
 	int ip_int = 0;
 	struct in_addr ip_addr;
+
+	if (silenced && APM_S3_G(disable_silence_operator) != 1)
+	{
+		return;
+	}
 
 	if (ip && (inet_pton(AF_INET, ip, &ip_addr) == 1)) {
 		ip_int = ntohl(ip_addr.s_addr);

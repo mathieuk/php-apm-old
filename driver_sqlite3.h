@@ -28,7 +28,7 @@
 #define DB_FILE "events"
 
 apm_driver_entry * apm_driver_sqlite3_create();
-void apm_driver_sqlite3_insert_event(int type, char * error_filename, uint error_lineno, char * msg, char * trace, char * uri, char * host, char * ip, char * cookies, char * post_vars TSRMLS_DC);
+void apm_driver_sqlite3_insert_event(int type, uint silenced, char * error_filename, uint error_lineno, char * msg, char * trace, char * uri, char * host, char * ip, char * cookies, char * post_vars TSRMLS_DC);
 int apm_driver_sqlite3_minit(int);
 int apm_driver_sqlite3_rinit();
 int apm_driver_sqlite3_mshutdown();
@@ -39,6 +39,9 @@ void apm_driver_sqlite3_insert_slow_request(float duration, char * script_filena
 ZEND_BEGIN_MODULE_GLOBALS(apm_sqlite3)
 	/* Boolean controlling whether the driver is active or not */
 	zend_bool enabled;
+
+	/* Boolean controlling whether to ignore the silence (@) operator */
+	zend_bool disable_silence_operator;
 
 	/* driver error reporting */
 	int     error_reporting;

@@ -18,3 +18,4 @@ INSERT INTO event2 SELECT id, strftime('%s',ts), type, file, line, message, back
 
 DROP TABLE event;
 ALTER TABLE event2 RENAME TO event;
+ALTER TABLE slow_request ADD server VARCHAR(255) NOT NULL;

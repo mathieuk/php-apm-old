@@ -1,2 +1,4 @@
 ALTER TABLE event CHANGE COLUMN ts ts TIMESTAMP;
 ALTER TABLE event ADD server VARCHAR(255);
+
+ALTER TABLE slow_request ADD server VARCHAR(255);

@@ -198,8 +198,12 @@ void apm_driver_mysql_insert_slow_request(float duration, char * script_filename
 {
 	MYSQL_INSTANCE_INIT
 
-	char *filename_esc = NULL, *sql = NULL;
-	int filename_len = 0;
+	char *filename_esc = NULL, *sql = NULL, *hostname_esc;
+	int filename_len = 0, hostname_len = 0;
+
+	hostname_len = strlen(APM_G(server_hostname));
+	hostname_esc = emalloc(hostname_len * 2 + 1);
+	hostname_len = mysql_real_escape_string(connection, hostname_esc, APM_G(server_hostname), hostname_len);
 
 	if (script_filename) {
 		filename_len = strlen(script_filename);
@@ -210,8 +214,8 @@ void apm_driver_mysql_insert_slow_request(float duration, char * script_filename
 	sql = emalloc(100 + filename_len);
 	sprintf(
 		sql,
-		"INSERT INTO slow_request (duration, file) VALUES (%f, '%s')",
-		USEC_TO_SEC(duration), script_filename ? filename_esc : "");
+		"INSERT INTO slow_request (duration, server, file) VALUES (%f, '%s', '%s')",
+		USEC_TO_SEC(duration), hostname_esc, script_filename ? filename_esc : "");
 
 	mysql_query(connection, sql);
 

@@ -18,5 +18,6 @@ CREATE TABLE IF NOT EXISTS slow_request (
     id INTEGER UNSIGNED PRIMARY KEY auto_increment,
     ts TEXT NOT NULL,
     duration FLOAT NOT NULL,
-    file TEXT NOT NULL
+    file TEXT NOT NULL,
+    server VARCHAR(255) NOT NULL
 );

@@ -119,6 +119,7 @@ void apm_driver_sqlite3_insert_event(int type, char * error_filename, uint error
 
 	sql = sqlite3_mprintf("INSERT INTO event (ts, server, type, file, line, message, backtrace, uri, host, ip, cookies, post_vars) VALUES (%d, %Q, %d, %Q, %d, %Q, %Q, %Q, %Q, %d, %Q, %Q);",
 		                  (long)time(NULL), APM_G(server_hostname), type, error_filename ? error_filename : "", error_lineno, msg ? msg : "", trace ? trace : "", uri ? uri : "", host ? host : "", ip_int, cookies ? cookies : "", post_vars ? post_vars : "");
+
 	/* Executing SQL insert query */
 	sqlite3_exec(APM_S3_G(event_db), sql, NULL, NULL, NULL);
 
@@ -167,8 +168,8 @@ void apm_driver_sqlite3_insert_slow_request(float duration, char * script_filena
 	char *sql;
 
 	/* Building SQL insert query */
-	sql = sqlite3_mprintf("INSERT INTO slow_request (ts, duration, file) VALUES (datetime(), %f, %Q);",
-						  USEC_TO_SEC(duration), script_filename);
+	sql = sqlite3_mprintf("INSERT INTO slow_request (ts, duration, file, server) VALUES (datetime(), %f, %Q, %Q);",
+						  USEC_TO_SEC(duration), script_filename, APM_G(server_hostname));
 
 	/* Executing SQL insert query */
 	sqlite3_exec(APM_S3_G(event_db), sql, NULL, NULL, NULL);

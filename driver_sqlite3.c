@@ -116,8 +116,9 @@ void apm_driver_sqlite3_insert_event(int type, char * error_filename, uint error
 	}
 
 	/* Builing SQL insert query */
-	sql = sqlite3_mprintf("INSERT INTO event (ts, type, file, line, message, backtrace, uri, host, ip, cookies, post_vars) VALUES (%d, %d, %Q, %d, %Q, %Q, %Q, %Q, %d, %Q, %Q);",
-		                  (long)time(NULL), type, error_filename ? error_filename : "", error_lineno, msg ? msg : "", trace ? trace : "", uri ? uri : "", host ? host : "", ip_int, cookies ? cookies : "", post_vars ? post_vars : "");
+
+	sql = sqlite3_mprintf("INSERT INTO event (ts, server, type, file, line, message, backtrace, uri, host, ip, cookies, post_vars) VALUES (%d, %Q, %d, %Q, %d, %Q, %Q, %Q, %Q, %d, %Q, %Q);",
+		                  (long)time(NULL), APM_G(server_hostname), type, error_filename ? error_filename : "", error_lineno, msg ? msg : "", trace ? trace : "", uri ? uri : "", host ? host : "", ip_int, cookies ? cookies : "", post_vars ? post_vars : "");
 	/* Executing SQL insert query */
 	sqlite3_exec(APM_S3_G(event_db), sql, NULL, NULL, NULL);
 

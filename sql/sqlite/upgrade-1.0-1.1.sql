@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS event2 (
     host TEXT NOT NULL,
     ip INTEGER UNSIGNED NOT NULL,
     cookies TEXT NOT NULL,
-    post_vars TEXT NOT NULL
+    post_vars TEXT NOT NULL,
+    server TEXT NOT NULL
 );
 
 INSERT INTO event2 SELECT id, strftime('%s',ts), type, file, line, message, backtrace, '', '', 0, '', '' FROM event;

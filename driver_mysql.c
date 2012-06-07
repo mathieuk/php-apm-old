@@ -83,7 +83,11 @@ void apm_driver_mysql_insert_event(int type, char * error_filename, uint error_l
 	MYSQL_INSTANCE_INIT
 
 	char *filename_esc = NULL, *msg_esc = NULL, *trace_esc = NULL, *uri_esc = NULL, *host_esc = NULL, *cookies_esc = NULL, *post_vars_esc = NULL, *sql = NULL;
+	char *hostname_esc;
+
 	int filename_len = 0, msg_len = 0, trace_len = 0, uri_len = 0, host_len = 0, ip_int = 0, cookies_len = 0, post_vars_len = 0;
+	int hostname_len;
+
 	struct in_addr ip_addr;
 
 	if (error_filename) {
@@ -132,11 +136,25 @@ void apm_driver_mysql_insert_event(int type, char * error_filename, uint error_l
 		post_vars_len = mysql_real_escape_string(connection, post_vars_esc, post_vars, post_vars_len);
 	}
 
-	sql = emalloc(165 + filename_len + msg_len + trace_len + uri_len + host_len + cookies_len + post_vars_len);
+	hostname_len = strlen(APM_G(server_hostname));
+	hostname_esc = emalloc(hostname_len * 2 + 1);
+	hostname_len = mysql_real_escape_string(connection, hostname_esc, APM_G(server_hostname), hostname_len);
+
+	sql = emalloc(172 + filename_len + msg_len + trace_len + uri_len + host_len + cookies_len + post_vars_len);
 	sprintf(
 		sql,
-		"INSERT INTO event (type, file, line, message, backtrace, uri, host, ip, cookies, post_vars) VALUES (%d, '%s', %u, '%s', '%s', '%s', '%s', %u, '%s', '%s')",
-		type, error_filename ? filename_esc : "", error_lineno, msg ? msg_esc : "", trace ? trace_esc : "", uri ? uri_esc : "", host ? host_esc : "", ip_int, cookies ? cookies_esc : "", post_vars ? post_vars_esc : "");
+		"INSERT INTO event SET server = '%s', type = %d, file = '%s', line = %d, message = '%s', backtrace = '%s', uri = '%s', host = '%s', ip = %u, cookies = '%s', post_vars = '%s'",
+		hostname_esc, 
+		type, 
+		error_filename ? filename_esc : "", 
+		error_lineno, 
+		msg ? msg_esc : "", 
+		trace ? trace_esc : "", 
+		uri ? uri_esc : "", 
+		host ? host_esc : "", 
+		ip_int, 
+		cookies ? cookies_esc : "", 
+		post_vars ? post_vars_esc : "");
 
 	mysql_query(connection, sql);
 
@@ -148,6 +166,7 @@ void apm_driver_mysql_insert_event(int type, char * error_filename, uint error_l
 	efree(host_esc);
 	efree(cookies_esc);
 	efree(post_vars_esc);
+	efree(hostname_esc);
 }
 int apm_driver_mysql_minit(int module_number)
 {

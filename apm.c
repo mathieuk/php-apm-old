@@ -244,6 +244,7 @@ PHP_MSHUTDOWN_FUNCTION(apm)
 {
 	UNREGISTER_INI_ENTRIES();
 
+	/* Shutdown the drivers */
 	if (APM_G(enabled)) {
 		apm_driver_entry * driver_entry;
 
@@ -254,7 +255,7 @@ PHP_MSHUTDOWN_FUNCTION(apm)
 			}
 		}
 	}
-
+	
 	/* Restoring saved error callback function */
 	zend_error_cb = old_error_cb;
 
@@ -279,6 +280,10 @@ PHP_RINIT_FUNCTION(apm)
 				}
 			}
 		}
+
+		/* Find the current hostname */
+		APM_G(server_hostname) = emalloc(HOST_NAME_MAX);
+		gethostname(APM_G(server_hostname), HOST_NAME_MAX - 1);
 
 		/* Replacing current error callback function with apm's one */
 		zend_error_cb = apm_error_cb;
@@ -342,7 +347,12 @@ PHP_RSHUTDOWN_FUNCTION(apm)
 				}
 			}
 		}
+
+		
 	}
+
+	/* Release the hostname */
+	efree(&APM_G(server_hostname));
 
 	/* Restoring saved error callback function */
 	zend_error_cb = old_error_cb;

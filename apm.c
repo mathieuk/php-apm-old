@@ -377,13 +377,8 @@ void apm_error_cb(int type, const char *error_filename, const uint error_lineno,
 	va_end(args_copy);
 	
 	if (APM_G(event_enabled)) {
-
 		/* We need to see if we have an uncaught exception fatal error now */
-		if (type == E_ERROR && strncmp(msg, "Uncaught exception", 18) == 0) {
-
-		} else {
-			insert_event(APM_EVENT_ERROR, type, (char *) error_filename, error_lineno, msg TSRMLS_CC);
-		}
+		insert_event(APM_EVENT_ERROR, type, (char *) error_filename, error_lineno, msg TSRMLS_CC);
 	}
 	efree(msg);
 
@@ -460,7 +455,7 @@ static void insert_event(int event_type, int type, char * error_filename, uint e
 
 		driver_entry = APM_G(drivers);
 		while ((driver_entry = driver_entry->next) != NULL) {
-			if (driver_entry->driver.want_event(event_type, type)) {
+			if (driver_entry->driver.want_event(event_type, type, msg)) {
 				driver_entry->driver.insert_event(
 					type,
 					error_filename,
@@ -495,7 +490,8 @@ static void deffered_insert_events(TSRMLS_D)
 			event_entry_cursor = APM_G(events);
 			
 			while ((event_entry_cursor = event_entry_cursor->next) != NULL) {
-				if (driver_entry->driver.want_event(event_entry_cursor->event.event_type, event_entry_cursor->event.type)) {
+
+				if (driver_entry->driver.want_event(event_entry_cursor->event.event_type, event_entry_cursor->event.type, event_entry_cursor->event.msg)) {
 					driver_entry->driver.insert_event(
 						event_entry_cursor->event.type,
 						event_entry_cursor->event.error_filename,

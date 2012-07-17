@@ -71,7 +71,7 @@ typedef struct apm_driver {
 	void (* insert_slow_request)(float, char *);
 	zend_bool (* is_enabled)();
 	int (* error_reporting)();
-	zend_bool (* want_event)(int, int);
+	zend_bool (* want_event)(int, int, char *);
 } apm_driver;
 
 typedef struct apm_driver_entry {
@@ -97,11 +97,14 @@ zend_bool apm_driver_##name##_is_enabled() { \
 int apm_driver_##name##_error_reporting() { \
 	return APM_GLOBAL(name, error_reporting); \
 } \
-zend_bool apm_driver_##name##_want_event(int event_type, int error_level) { \
+zend_bool apm_driver_##name##_want_event(int event_type, int error_level, char *msg) { \
 	if (!APM_GLOBAL(name,enabled)) { \
 		return 0; \
 	} \
 	if ( event_type != APM_EVENT_EXCEPTION && (error_level & APM_GLOBAL(name, error_reporting)) != error_level ) { \
+		return 0; \
+	} \
+	if ( event_type != APM_EVENT_EXCEPTION && strncmp(msg, "Uncaught exception", 18) == 0 && APM_GLOBAL(name, log_exceptions) != 0) { \
 		return 0; \
 	} \
 	if (event_type == APM_EVENT_EXCEPTION && APM_GLOBAL(name, log_exceptions) == 0) { \

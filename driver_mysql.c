@@ -46,9 +46,11 @@ APM_DRIVER_CREATE(mysql)
 
 PHP_INI_BEGIN()
  	/* Boolean controlling whether the driver is active or not */
- 	STD_PHP_INI_BOOLEAN("apm.mysql_enabled",       "1",               PHP_INI_PERDIR, OnUpdateBool,   enabled,             zend_apm_mysql_globals, apm_mysql_globals)
+ 	STD_PHP_INI_BOOLEAN("apm.mysql_enabled",         "1",               PHP_INI_PERDIR, OnUpdateBool,   enabled,          zend_apm_mysql_globals, apm_mysql_globals)
+	/* Boolean controller whether to log exceptions */
+ 	STD_PHP_INI_BOOLEAN("apm.mysql_log_exceptions",  "1",               PHP_INI_PERDIR, OnUpdateBool,   log_exceptions,   zend_apm_mysql_globals, apm_mysql_globals)
 	/* error_reporting of the driver */
-	STD_PHP_INI_ENTRY("apm.mysql_error_reporting", NULL,              PHP_INI_ALL,    OnUpdateAPMmysqlErrorReporting,   error_reporting,     zend_apm_mysql_globals, apm_mysql_globals)
+	STD_PHP_INI_ENTRY("apm.mysql_error_reporting", NULL,              PHP_INI_ALL,    OnUpdateAPMmysqlErrorReporting,     error_reporting,     zend_apm_mysql_globals, apm_mysql_globals)
 	/* mysql host */
 	STD_PHP_INI_ENTRY("apm.mysql_host",            "localhost",       PHP_INI_PERDIR, OnUpdateString, db_host,             zend_apm_mysql_globals, apm_mysql_globals)
 	/* mysql port */
@@ -139,7 +141,6 @@ void apm_driver_mysql_insert_event(int type, char * error_filename, uint error_l
 		type, error_filename ? filename_esc : "", error_lineno, msg ? msg_esc : "", trace ? trace_esc : "", uri ? uri_esc : "", host ? host_esc : "", ip_int, cookies ? cookies_esc : "", post_vars ? post_vars_esc : "");
 
 	mysql_query(connection, sql);
-
 	efree(sql);
 	efree(filename_esc);
 	efree(msg_esc);

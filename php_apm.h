@@ -45,7 +45,11 @@ extern zend_module_entry apm_module_entry;
 
 #define APM_E_ALL (E_ALL | E_STRICT)
 
+#define APM_EVENT_ERROR 1
+#define APM_EVENT_EXCEPTION 2
+
 typedef struct apm_event {
+	int event_type;
 	int type;
 	char * error_filename;
 	uint error_lineno;
@@ -67,6 +71,7 @@ typedef struct apm_driver {
 	void (* insert_slow_request)(float, char *);
 	zend_bool (* is_enabled)();
 	int (* error_reporting)();
+	zend_bool (* want_event)(int, int);
 } apm_driver;
 
 typedef struct apm_driver_entry {
@@ -92,6 +97,18 @@ zend_bool apm_driver_##name##_is_enabled() { \
 int apm_driver_##name##_error_reporting() { \
 	return APM_GLOBAL(name, error_reporting); \
 } \
+zend_bool apm_driver_##name##_want_event(int event_type, int error_level) { \
+	if (!APM_GLOBAL(name,enabled)) { \
+		return 0; \
+	} \
+	if ( event_type != APM_EVENT_EXCEPTION && (error_level & APM_GLOBAL(name, error_reporting)) != error_level ) { \
+		return 0; \
+	} \
+	if (event_type == APM_EVENT_EXCEPTION && APM_GLOBAL(name, log_exceptions) == 0) { \
+		return 0; \
+	} \
+	return 1; \
+} \
 apm_driver_entry * apm_driver_##name##_create() \
 { \
 	apm_driver_entry * driver_entry; \
@@ -104,6 +121,7 @@ apm_driver_entry * apm_driver_##name##_create() \
 	driver_entry->driver.insert_slow_request = apm_driver_##name##_insert_slow_request; \
 	driver_entry->driver.is_enabled = apm_driver_##name##_is_enabled; \
 	driver_entry->driver.error_reporting = apm_driver_##name##_error_reporting; \
+	driver_entry->driver.want_event = apm_driver_##name##_want_event; \
 	driver_entry->next = NULL; \
 	return driver_entry; \
 }

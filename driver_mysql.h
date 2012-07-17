@@ -44,6 +44,8 @@ void apm_driver_mysql_insert_slow_request(float duration, char * script_filename
 ZEND_BEGIN_MODULE_GLOBALS(apm_mysql)
 	/* Boolean controlling whether the driver is active or not */
 	zend_bool enabled;
+	/* Boolean controlling whether this driver wants to log all exceptions or not */
+	zend_bool log_exceptions;
 	/* driver error reporting */
 	int          error_reporting;
 	/* MySQL host */

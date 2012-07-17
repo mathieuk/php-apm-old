@@ -40,6 +40,9 @@ ZEND_BEGIN_MODULE_GLOBALS(apm_sqlite3)
 	/* Boolean controlling whether the driver is active or not */
 	zend_bool enabled;
 
+	/* Boolean controlling whether the driver wants to log all exceptions or not */
+	zend_bool log_exceptions;
+	
 	/* driver error reporting */
 	int     error_reporting;
 
